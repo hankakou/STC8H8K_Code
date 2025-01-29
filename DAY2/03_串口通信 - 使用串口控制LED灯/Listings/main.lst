@@ -1,0 +1,106 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              05/31/2024 15:20:01 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include "GPIO.h"
+   2          #include "NVIC.h"
+   3          #include "UART.h"
+   4          #include "Switch.h"
+   5          #include "Delay.h"
+   6          
+   7          
+   8          //1. IO配置
+   9          void GPIO_Config(){
+  10   1      
+  11   1        //串口的配置
+  12   1        GPIO_InitTypeDef init;
+  13   1        
+  14   1        init.Mode = GPIO_PullUp;    //IO模式,     GPIO_PullUp,GPIO_HighZ,GPIO_OUT_OD,GPIO_OUT_PP
+  15   1        init.Pin = GPIO_Pin_0 | GPIO_Pin_1;   //要设置的端口  
+  16   1        GPIO_Inilize(GPIO_P3 , &init);
+  17   1        
+  18   1        
+  19   1        //LED的配置
+  20   1        init.Mode = GPIO_OUT_PP;    //IO模式,     GPIO_PullUp,GPIO_HighZ,GPIO_OUT_OD,GPIO_OUT_PP
+  21   1        init.Pin = GPIO_Pin_3;    //要设置的端口  
+  22   1        GPIO_Inilize(GPIO_P5 , &init);
+  23   1      }
+  24          
+  25          //2. 串口配置
+  26          void UART_Config(){
+  27   1        COMx_InitDefine init;
+  28   1        
+  29   1        init.UART_Mode = UART_8bit_BRTx;      //模式,         UART_ShiftRight,UART_8bit_BRTx,UART_9bit,UART_9bit_BRT
+             -x
+  30   1        init.UART_BRT_Use = BRT_Timer1;   //使用波特率,   BRT_Timer1,BRT_Timer2,BRT_Timer3,BRT_Timer4
+  31   1        init.UART_BaudRate = 115200;    //波特率,      一般 110 ~ 115200
+  32   1        init.UART_RxEnable = ENABLE;    //允许接收,   ENABLE,DISABLE
+  33   1        init.BaudRateDouble = DISABLE;    //波特率加倍, ENABLE,DISABLE
+  34   1        
+  35   1        //初始化串口
+  36   1        UART_Configuration(UART1 , &init);
+  37   1        
+  38   1        //中断使能  NVIC
+  39   1        NVIC_UART1_Init(ENABLE , Priority_1);
+  40   1        
+  41   1        
+  42   1        //切换引脚 Switch
+  43   1        UART1_SW(UART1_SW_P30_P31);
+  44   1      }
+  45          
+  46          
+  47          void main(){
+  48   1        
+  49   1        //1. IO
+  50   1         GPIO_Config();
+  51   1        
+  52   1        
+  53   1        //2. 串口
+C51 COMPILER V9.60.7.0   MAIN                                                              05/31/2024 15:20:01 PAGE 2   
+
+  54   1        UART_Config();
+  55   1        
+  56   1        
+  57   1        //3. 打开中断总开关
+  58   1        EA = 1;
+  59   1      
+  60   1        
+  61   1        while(1){
+  62   2        
+  63   2          //4. 接收串口数据，判断LED灯要亮还是灭
+  64   2          if(COM1.RX_Cnt > 0 ){
+  65   3            
+  66   3            //5. 由于我们希望控制LED灯亮或者熄灭，所以只需要发送一个字节的数据过来即可。这里就不用循环去遍历128个长
+             -度的数组了。
+  67   3            if(RX1_Buffer[0] == 0x01){ // 亮灯
+  68   4              P53 = 1;
+  69   4            }else{ //熄灯
+  70   4              P53 = 0;
+  71   4            }
+  72   3            
+  73   3            //6. 清空标志位
+  74   3            COM1.RX_Cnt = 0;
+  75   3          }
+  76   2          delay_ms(20); // 每间隔20ms 就去获取一次串口的数据
+  77   2        }
+  78   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    116    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      11
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

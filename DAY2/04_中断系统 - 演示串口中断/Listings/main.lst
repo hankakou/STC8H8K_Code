@@ -1,0 +1,106 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              05/31/2024 16:02:37 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          
+   2          sfr   P5M1  = 0xC9;
+   3          sfr   P5M0  = 0xCA;
+   4          sfr   P5    = 0xC8;
+   5          sbit  P53   = P5^3;
+   6          
+   7          sfr     T2L     =   0xd7;
+   8          sfr     T2H     =   0xd6;
+   9          sfr     AUXR    =   0x8e;
+  10          
+  11          sfr   IE    = 0xA8;
+  12          sbit  EA    = IE^7;
+  13          sbit  ES    = IE^4;
+  14          
+  15          sfr   SCON  = 0x98;
+  16          sfr   SBUF  = 0x99;
+  17          sbit  RI    = SCON^0;
+  18          sbit  TI    = SCON^1;
+  19          
+  20          // 中断函数 ???  
+  21          void uart_hello(void) interrupt 4 {
+  22   1        if(RI) {
+  23   2              // 如果接收寄存器RI触发了中断，打开灯
+  24   2          RI = 0;
+  25   2          P53 = 1;//开
+  26   2        } 
+  27   1        
+  28   1        if(TI) {
+  29   2              // 如果发送寄存器TI触发了中断，关掉灯
+  30   2          TI = 0;
+  31   2          P53 = 0;//关
+  32   2        }
+  33   1      }
+  34          
+  35          void Delay1000ms(void)  //@24.000MHz
+  36          {
+  37   1        unsigned char data i, j, k;
+  38   1      
+  39   1      
+  40   1        i = 122;
+  41   1        j = 193;
+  42   1        k = 128;
+  43   1        do
+  44   1        {
+  45   2          do
+  46   2          {
+  47   3            while (--k);
+  48   3          } while (--j);
+  49   2        } while (--i);
+  50   1      }
+  51          
+  52          
+  53          int main() {
+  54   1        P5M1 &= ~0x08,  P5M0 |=  0x08; //推挽输出
+C51 COMPILER V9.60.7.0   MAIN                                                              05/31/2024 16:02:37 PAGE 2   
+
+  55   1        
+  56   1        SCON = 0x50;
+  57   1        T2L = 0xe8; //65536-11059200/115200/4=0FFE8H
+  58   1        T2H = 0xff;
+  59   1        AUXR = 0x15;//启动定时器
+  60   1        
+  61   1        EA = 1;  // 全局中断
+  62   1        ES = 1;  // 中断使能 
+  63   1        
+  64   1        P53 = 0;  // 先关灯
+  65   1        
+  66   1        while(1) {
+  67   2          // 休眠1000ms
+  68   2          Delay1000ms();
+  69   2          Delay1000ms();
+  70   2          Delay1000ms();
+  71   2          Delay1000ms();
+  72   2          Delay1000ms();
+  73   2          
+  74   2          // 发送一个数据0x11
+  75   2          SBUF = 0x11;
+  76   2          
+  77   2          // 将TI位寄存器置为1 (这里可以不设置, 只要给SBUF赋值了, TI也会自动变为1) :: 会发生发送中断
+  78   2          TI = 1;
+  79   2        }
+  80   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     71    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
