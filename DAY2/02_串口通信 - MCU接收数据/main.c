@@ -45,30 +45,22 @@ void main(){
 	
 	//3. 打开全局中断
 	EA = 1;
+    TX1_write2buff('D');
 	
-	TX1_write2buff(97);
-
-	while(1){
-
-		//4. 接收PC发过来的数据
-		
-		//4.1 判断串口是否有数据过来了
-		if(COM1.RX_Cnt > 0 && --COM1.RX_TimeOut == 0 ){
-			
-			//4.2 获取数据 :: 遍历数组
-			for(i = 0 ; i < COM1.RX_Cnt ; i++){
-					
-				//4.3 取出数组中的每一个元素 , 然后把这个数据再写回去，这样PC就知道单片机收到什么数据了
-				TX1_write2buff(RX1_Buffer[i]);
-			}
-			
-			// 4.4 当我们在上面的for循环已经把数据都处理完毕了之后，一定要在后面把CNT给置 0 。
-			COM1.RX_Cnt = 0;
-			
-		}
-		
-		
-		//休息一下
-		delay_ms(20); // 每间隔20ms 就去拿一次串口的数据
+    while(1){
+    // 4.接收PC发过来的数据
+        
+        //4.1 判断串口是否有数据过来
+        if(COM1.RX_Cnt >0 && --COM1.RX_TimeOut ==0){
+            //4.2  获取数据，遍历数组
+            for(i=0;i<COM1.RX_Cnt;i++){
+            
+                //4.3 取出数组中的每一个元素，在写回去，PC就知道计算机受到什么数据了
+                TX1_write2buff(RX1_Buffer[i]);
+        }
+        COM1.RX_Cnt = 0;
+    }
+	
+    delay_ms(20);
 	}
 }

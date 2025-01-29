@@ -1,0 +1,90 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              06/01/2024 10:58:29 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include "GPIO.h"
+   2          #include "NVIC.h"
+   3          #include "Delay.h"
+   4          #include "Timer.h"
+   5          
+   6          
+   7          //配置IO
+   8          void GPIO_config(void) {
+   9   1        GPIO_InitTypeDef  GPIO_InitStructure;   //结构定义
+  10   1        GPIO_InitStructure.Pin  = GPIO_Pin_3;   //指定要初始化的IO,
+  11   1        GPIO_InitStructure.Mode = GPIO_OUT_PP;  //指定IO的输入或输出方式,GPIO_PullUp,GPIO_HighZ,GPIO_OUT_OD,GPIO_O
+             -UT_PP
+  12   1        GPIO_Inilize(GPIO_P5, &GPIO_InitStructure);//初始化
+  13   1      }
+  14          
+  15          //定时器配置
+  16          void Timer_Config(){
+  17   1        
+  18   1        //创建结构体变量
+  19   1        TIM_InitTypeDef init;
+  20   1        
+  21   1        
+  22   1        //给成员赋值
+  23   1        init.TIM_Mode =TIM_16BitAutoReload;   //工作模式,   TIM_16BitAutoReload,TIM_16Bit,TIM_8BitAutoReload,TIM_1
+             -6BitAutoReloadNoMask
+  24   1        init.TIM_ClkSource =TIM_CLOCK_1T; //时钟源    TIM_CLOCK_1T (41.67ns),TIM_CLOCK_12T(12*41.67),TIM_CLOCK_Ext
+  25   1        init.TIM_ClkOut =DISABLE;   //可编程时钟输出, ENABLE,DISABLE  会在P35引脚输出高低电平信号！
+  26   1        
+  27   1        /*
+  28   1          1. 初值就是这个16位里面一开始|默认 就有的值。
+  29   1            1.1 如果设置初值是0，就要从0 开始数数，数65535个数就满了。 再数一个数就溢出，此时就会触发中断。
+  30   1            1.2 如果设置初值是10000，就是要从10000开始数数，数 （65535 - 1000 ）个数就数满了，此时就会从触发中断
+  31   1          2. 为了方便未来能够精准的使用这个定时器，就希望把这个定时器触发的中断【定的时间，设置在 1ms之间】
+  32   1            2.1 如果希望设置定时器是定时 1ms 就触发中断，那么这里应该写什么数字（初值应该设置成什么？）
+  33   1            2.2 现在的芯片时钟频率是24M （1s钟可以数 24 000 000个数），1ms可以数 24000个数
+  34   1                  1s = 24M  1000ms = 24M  
+  35   1            2.3 为什么一定要纠结于1ms 呢？ 10ms , 65535 最大就是2ms 多一点..  主要是为了以后计算时间更好计算。
+  36   1        */
+  37   1        init.TIM_Value = 65535 - ( MAIN_Fosc / 1000 );    //装载初值  0 ~ 65535
+  38   1        init.TIM_Run =ENABLE;   //是否运行    ENABLE,DISABLE  初始化好了之后，是否立即开始计数 启动定时器
+  39   1        
+  40   1        //初始化定时器
+  41   1        Timer_Inilize(Timer0, &init);
+  42   1        
+  43   1        //中断使能
+  44   1        NVIC_Timer0_Init(ENABLE , Priority_1);
+  45   1        
+  46   1      }
+  47          
+  48          
+  49          void main(){
+  50   1        
+  51   1        
+  52   1        //1. 配置P53的IO模式
+C51 COMPILER V9.60.7.0   MAIN                                                              06/01/2024 10:58:29 PAGE 2   
+
+  53   1        GPIO_config();
+  54   1        
+  55   1        //2. 定时器配置
+  56   1        Timer_Config();
+  57   1        
+  58   1        //3. 打开全局中断
+  59   1        EA = 1;
+  60   1      
+  61   1        while(1);
+  62   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     60    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       9
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
